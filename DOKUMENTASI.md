@@ -33,47 +33,52 @@ Aplikasi ini adalah sebuah **Toko Web Online** sederhana yang dibangun menggunak
 
 ```
 toko-online-lab/
+├── package.json              # Konfigurasi Monorepo (npm workspaces & script concurrent)
+├── .gitignore                # Aturan ignore git terpusat
+├── DOKUMENTASI.md            # Dokumentasi lengkap proyek
 ├── backend/
 │   ├── config/
-│   │   └── db.js                 # Konfigurasi koneksi MongoDB
+│   │   └── db.js             # Konfigurasi koneksi MongoDB
 │   ├── controllers/
-│   │   ├── authController.js     # Logic autentikasi (login, register)
-│   │   └── productController.js  # Logic CRUD produk & validasi request
+│   │   ├── authController.js # Logic autentikasi (login, register)
+│   │   └── productController.js # Logic CRUD produk & validasi request
 │   ├── lib/
-│   │   └── utils.js              # Utility helper (formatValidationError untuk error Mongoose)
+│   │   └── utils.js          # Utility helper (formatValidationError untuk error Mongoose)
+│   ├── middleware/
+│   │   └── authMiddleware.js # Middleware proteksi JWT Bearer token
 │   ├── models/
-│   │   ├── Product.js            # Mongoose Schema produk (dengan validasi schema lengkap)
-│   │   └── User.js               # Mongoose Schema user (dengan enkripsi password bcrypt)
+│   │   ├── Product.js        # Mongoose Schema produk (dengan validasi schema lengkap)
+│   │   └── User.js           # Mongoose Schema user (dengan enkripsi password bcrypt)
 │   ├── routes/
-│   │   ├── authRoutes.js         # Route autentikasi
-│   │   └── productRoutes.js      # Route CRUD produk
-│   ├── .env                      # Environment variables (MONGO_URI, JWT_SECRET)
-│   ├── seed.js                   # Script untuk mengisi data awal produk & akun admin default
-│   ├── server.js                 # Entry point server Express
+│   │   ├── authRoutes.js     # Route autentikasi
+│   │   └── productRoutes.js  # Route CRUD produk (diproteksi authMiddleware)
+│   ├── .env                  # Environment variables (MONGO_URI, JWT_SECRET)
+│   ├── seed.js               # Script untuk mengisi data awal produk & akun admin default
+│   ├── server.js             # Entry point server Express
 │   └── package.json
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/           # Komponen reusable (Button, Input, Modal, ConfirmModal, Table, ProductCard, Loading)
+│   │   ├── components/       # Komponen reusable (Button, Input, Modal, ConfirmModal, Table, ProductCard, Loading)
 │   │   ├── hooks/
-│   │   │   └── useFormValidation.js  # Custom hook validasi form (Zod)
+│   │   │   └── useFormValidation.js # Custom hook validasi form (Zod)
 │   │   ├── lib/
-│   │   │   └── axiosClient.js    # Konfigurasi Axios + Interceptor JWT
+│   │   │   └── axiosClient.js # Konfigurasi Axios + Interceptor JWT
 │   │   ├── pages/
-│   │   │   ├── Home.jsx          # Halaman Beranda
-│   │   │   ├── ProductList.jsx   # Halaman Daftar Produk
+│   │   │   ├── Home.jsx      # Halaman Beranda
+│   │   │   ├── ProductList.jsx # Halaman Daftar Produk
 │   │   │   ├── ProductDetail.jsx # Halaman Detail Produk
-│   │   │   ├── Login.jsx         # Halaman Login Admin
-│   │   │   └── Admin.jsx         # Halaman Admin (CRUD Produk via Modal)
+│   │   │   ├── Login.jsx     # Halaman Login Admin
+│   │   │   └── Admin.jsx     # Halaman Admin (CRUD Produk via Modal)
 │   │   ├── services/
-│   │   │   ├── authService.js    # Service layer untuk API autentikasi
+│   │   │   ├── authService.js # Service layer untuk API autentikasi
 │   │   │   └── productService.js # Service layer untuk API produk
 │   │   ├── store/
-│   │   │   └── useAuthStore.js   # Zustand store untuk state autentikasi
-│   │   ├── App.jsx               # Routing utama aplikasi
-│   │   ├── main.jsx              # Entry point React + QueryClientProvider
-│   │   └── index.css             # Stylesheet utama (responsive)
-│   ├── .env                      # Environment variable (VITE_API_URL)
+│   │   │   └── useAuthStore.js # Zustand store untuk state autentikasi
+│   │   ├── App.jsx           # Routing utama aplikasi
+│   │   ├── main.jsx          # Entry point React + QueryClientProvider
+│   │   └── index.css         # Stylesheet utama (responsive)
+│   ├── .env                  # Environment variable (VITE_API_URL)
 │   └── package.json
 ```
 
@@ -83,13 +88,13 @@ toko-online-lab/
 
 ### Produk
 
-| Method   | Endpoint            | Keterangan                          |
-|----------|---------------------|--------------------------------------|
-| `GET`    | `/api/products`     | Mengambil semua produk               |
-| `GET`    | `/api/products/:id` | Mengambil detail produk berdasarkan ID |
-| `POST`   | `/api/products`     | Menambahkan produk baru              |
-| `PUT`    | `/api/products/:id` | Mengubah data produk                 |
-| `DELETE` | `/api/products/:id` | Menghapus produk                     |
+| Method   | Endpoint            | Proteksi / Akses  | Keterangan                          |
+|----------|---------------------|-------------------|--------------------------------------|
+| `GET`    | `/api/products`     | Publik            | Mengambil semua produk               |
+| `GET`    | `/api/products/:id` | Publik            | Mengambil detail produk berdasarkan ID |
+| `POST`   | `/api/products`     | `authMiddleware`  | Menambahkan produk baru (Admin)      |
+| `PUT`    | `/api/products/:id` | `authMiddleware`  | Mengubah data produk (Admin)         |
+| `DELETE` | `/api/products/:id` | `authMiddleware`  | Menghapus produk (Admin)             |
 
 ### Autentikasi
 
@@ -152,7 +157,9 @@ toko-online-lab/
 
 ---
 
-## 5. Cara Menjalankan Aplikasi
+## 5. Cara Menjalankan Aplikasi (Monorepo)
+
+Project ini menggunakan arsitektur **npm workspaces (Monorepo)**, sehingga Anda dapat menginstal dependensi dan menjalankan frontend serta backend secara bersamaan hanya dengan satu perintah dari root folder.
 
 ### Prasyarat
 
@@ -160,74 +167,71 @@ toko-online-lab/
 - **MongoDB** berjalan di `localhost:27017` (bisa menggunakan Docker)
 - **Git** (opsional, untuk clone project)
 
-### Langkah 1: Jalankan MongoDB (menggunakan Docker)
+### Langkah 1: Jalankan MongoDB (Docker)
 
 ```bash
 docker run -d -p 27017:27017 --name mongodb-toko-online mongo:latest
 ```
 
-Jika sudah pernah dibuat sebelumnya:
+Jika container sudah pernah dibuat sebelumnya:
 
 ```bash
 docker start mongodb-toko-online
 ```
 
-### Langkah 2: Setup Backend
+### Langkah 2: Instal Seluruh Dependensi (Satu Perintah dari Root)
+
+Cukup jalankan perintah ini langsung dari direktori root `toko-online-lab`:
 
 ```bash
-cd backend
 npm install
 ```
 
-Buat file `.env` di folder `backend/` dengan isi:
+> 💡 *Perintah ini secara otomatis menginstal seluruh dependensi root, backend, dan frontend melalui fitur npm workspaces.*
 
-```
-MONGO_URI=mongodb://localhost:27017/toko_online
-JWT_SECRET=secretkey123
-```
+File konfigurasi `.env` di folder `backend/` dan `frontend/` sudah disiapkan (dapat disesuaikan jika port atau URI database berbeda).
 
-Jalankan seed data (untuk mengisi katalog produk awal dan membuat akun admin):
+### Langkah 3: Seed Database (Katalog Produk & Akun Admin)
+
+Jalankan seeding database langsung dari root:
 
 ```bash
-node seed.js
+npm run seed
 ```
 
 > ℹ️ **Akun Admin Default (dari seed):**  
 > - **Email:** `admin@example.com`  
 > - **Password:** `admin123`  
 
-Jalankan server backend:
+### Langkah 4: Jalankan Frontend dan Backend Sekaligus
 
-```bash
-npm run start
-```
-
-Backend akan berjalan di **http://localhost:5000**.
-
-### Langkah 3: Setup Frontend
-
-```bash
-cd frontend
-npm install
-```
-
-Buat file `.env` di folder `frontend/` dengan isi:
-
-```
-VITE_API_URL=http://localhost:5000/api
-```
-
-Jalankan frontend:
+Jalankan perintah berikut di direktori root:
 
 ```bash
 npm run dev
 ```
 
-Frontend akan berjalan di **http://localhost:5173**.
-
-### Langkah 4: Buka Aplikasi
+> 🚀 **Perintah ini akan menjalankan:**
+> - **Backend API:** `http://localhost:5000` (menggunakan auto-reload Nodemon)
+> - **Frontend UI:** `http://localhost:5173` (menggunakan Vite HMR)
+>
+> Keduanya berjalan secara concurrent dalam satu jendela terminal dengan output berwarna terpisah.
 
 Buka browser dan akses **http://localhost:5173**.
+
+---
+
+### Perintah Tambahan Monorepo
+
+| Perintah | Keterangan |
+|---|---|
+| `npm run dev` | Menjalankan backend dan frontend bersamaan secara concurrent |
+| `npm run dev:backend` | Menjalankan backend saja (`nodemon server.js`) |
+| `npm run dev:frontend` | Menjalankan frontend saja (`vite`) |
+| `npm run start:backend` | Menjalankan backend mode production (`node server.js`) |
+| `npm run seed` | Mengisi ulang katalog produk dan akun admin default |
+| `npm run build` | Melakukan build production pada frontend |
+| `npm run install:all` | Menginstal ulang dependensi semua workspace |
 
 ---
 
@@ -314,6 +318,7 @@ Client Request → Express Router → Controller → Mongoose Model → MongoDB
 ```
 
 - **MVC Pattern (Model-Controller-Route):** Routes mengatur routing endpoint RESTful, Controllers menangani logika bisnis dan validasi input, Models mendefinisikan skema dan aturan integritas data MongoDB.
+- **Middleware Proteksi (`middleware/authMiddleware.js`):** Memverifikasi token JWT Bearer pada header `Authorization` sebelum mengizinkan mutasi data produk (`POST`, `PUT`, `DELETE`). Mengembalikan respons HTTP 401 jika token tidak ada atau tidak valid.
 - **Modular Utility Helper (`lib/utils.js`):**
   - Menyediakan helper function `formatValidationError(error)`.
   - Mengonversi objek `ValidationError` bertingkat dari Mongoose menjadi pesan string gabungan yang ramah pengguna (human-readable) untuk dikirimkan kembali ke client dalam respons HTTP 400.
@@ -396,4 +401,6 @@ Aplikasi Toko Web Online ini telah berhasil dibangun dengan arsitektur Full-Stac
 10. ✅ Arsitektur modular dengan pemisahan Service Layer, Custom Hooks (`useFormValidation`), Axios Interceptors, dan Utility Helper (`formatValidationError`)
 11. ✅ Dialog konfirmasi aksi kustom (`ConfirmModal`) yang elegan menggantikan dialog browser bawaan (`window.confirm`)
 12. ✅ Skrip seeding database (`seed.js`) otomatis untuk inisialisasi katalog produk dan pembuatan akun admin terenkripsi bcrypt
+13. ✅ Keamanan endpoint backend yang diperketat menggunakan `authMiddleware` untuk memproteksi operasi mutasi produk (POST, PUT, DELETE) hanya untuk request terotentikasi via JWT Bearer token.
+14. ✅ Arsitektur Monorepo menggunakan **npm workspaces** dan **concurrently** untuk kemudahan instalasi (`npm install`) serta menjalankan backend dan frontend sekaligus dalam satu perintah (`npm run dev`).
 
