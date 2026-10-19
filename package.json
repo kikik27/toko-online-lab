@@ -18,5 +18,11 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "^1.2.12",
+    "@rolldown/binding-linux-x64-musl": "^1.2.12",
+    "lightningcss-linux-x64-gnu": "^1.33.0",
+    "lightningcss-linux-x64-musl": "^1.33.0"
   }
 }
